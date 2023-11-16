@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Edit{% endblock %}
+{% block body %}
+    <div class="d-flex align-items-center justify-content-center mt-5">
+        <form method="post">
+            {% csrf_token %}
+            <h2>Edit</h2>
+            {% if messages %}
+                {% for message in messages %}<div class="alert alert-danger">{{ message }}</div>{% endfor %}
+            {% endif %}
+            {{ form.as_p }}
+            <p>
+                Already have an account <a href='http://127.0.0.1:8000/task1/login'>Login</a>
+            </p>
+            <button class="btn btn-primary" type="submit">Update</button>
+        </form>
+    </div>
+{% endblock %}
