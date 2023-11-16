@@ -1,14 +1,20 @@
 {% extends "base.html" %}
 {% block title %}home{% endblock %}
 {% block body %}
-    <h2 class="mt-5" style="text-align: center;">Welcome {{request.user.username}}</h2>
-    <div class="d-flex align-items-center justify-content-center mt-5">
-        <div class="btn btn-warning mx-1"
-             type="submit"
-             onclick="location.href='{% url 'edit' %}'">Edit</div>
-        <div class="btn btn-primary mx-1"
-             type="submit"
-             onclick="location.href='{% url 'logout' %}'">Logout</div>
-        <!-- <div href="{% url 'logout' %}" class="btn btn-primary mx-1">logout</div> -->
-    </div>
+     <h2 class="mt-5" style="text-align: center;">Welcome {{ request.user.username }}</h2>
+     {% if messages %}
+          {% for message in messages %}<div class="alert alert-success">{{ message }}</div>{% endfor %}
+     {% endif %}
+     <div class="d-flex align-items-center justify-content-center mt-5">
+          <div class="btn btn-warning mx-1"
+               type="submit"
+               onclick="location.href='{% url 'edit' %}'">Edit</div>
+          <div class="btn btn-primary mx-1"
+               type="submit"
+               onclick="location.href='{% url 'logout' %}'">Logout</div>
+          <div class="btn btn-secondary mx-1"
+               type="submit"
+               onclick="location.href='{% url 'profile' %}'">Edit profile</div>
+          <!-- <div href="{% url 'logout' %}" class="btn btn-primary mx-1">logout</div> -->
+     </div>
 {% endblock %}
