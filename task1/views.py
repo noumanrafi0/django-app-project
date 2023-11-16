@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -8,13 +10,15 @@ from django.views import View
 
 from .forms import EditForm, LoginForm, SignupForm
 
+logger = logging.getLogger(__name__)
+
 
 class HomeView(View):
     template_name = "task1/home.html"
 
     def get(self, request, *args, **kwargs):
         if not request.user.is_authenticated and request.method == "GET":
-            print("not authenticated --->>> returned to login")
+            logger.info("not authenticated --->>> returned to login")
             return redirect("login")
         return render(request, self.template_name)
 
@@ -82,7 +86,7 @@ class LoginView(View):
 
                     if user is not None:
                         login(request, user)
-                        print(f"{user} logged in")
+                        logger.info(f"{user} logged in")
                         return redirect("home")
                     else:
                         messages.error(request, "Invalid username or password")
@@ -100,7 +104,7 @@ class LoginView(View):
 
 class LogoutView(View):
     def get(self, request, *args, **kwargs):
-        print(f"{request.user.username} logged out")
+        logger.info(f"{request.user.username} logged out")
         logout(request)
         return redirect("login")
 
