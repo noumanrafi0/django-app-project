@@ -1,21 +1,22 @@
 import logging
 
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect, render
 from django.views import View
 
 from .forms import EditProfileForm
+from .models import Profile
 
 logger = logging.getLogger(__name__)
 
 
-class HomeView(View):
+class HomeView(LoginRequiredMixin, View):
     template_name = "task1/home.html"
+    login_url = "login"
 
     def get(self, request, *args, **kwargs):
-        if not request.user.is_authenticated and request.method == "GET":
-            logger.info("not authenticated --->>> returned to login")
-            return redirect("login")
         return render(request, self.template_name)
 
 
@@ -27,7 +28,14 @@ class ProfileView(View):
         if not request.user.is_authenticated:
             logger.info("not authenticated --->>> returned to login")
             return redirect("login")
-        form = EditProfileForm(instance=request.user.profile)
+
+        try:
+            profile = request.user.profile
+            form = EditProfileForm(instance=profile)
+        except ObjectDoesNotExist:
+            profile = Profile.objects.create(user=request.user)
+            form = EditProfileForm(instance=profile)
+
         return render(request, self.template_name, {"form": form})
 
     def post(self, request, *args, **kwargs):

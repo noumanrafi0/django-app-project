@@ -16,6 +16,7 @@ jsbeautifier==1.14.11
 json5==0.9.14
 nodeenv==1.8.0
 pathspec==0.11.2
+Pillow==10.1.0
 platformdirs==3.11.0
 pre-commit==3.5.0
 PyYAML==6.0.1

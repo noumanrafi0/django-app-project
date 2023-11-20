@@ -2,9 +2,8 @@ import logging
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.core.exceptions import PermissionDenied
-from django.http import HttpResponseNotFound, HttpResponseServerError
 from django.shortcuts import redirect, render
 from django.views import View
 
@@ -13,13 +12,11 @@ from .forms import EditForm, LoginForm, SignupForm
 logger = logging.getLogger(__name__)
 
 
-class HomeView(View):
+class HomeView(LoginRequiredMixin, View):
     template_name = "task1/home.html"
+    login_url = "login"
 
     def get(self, request, *args, **kwargs):
-        if not request.user.is_authenticated and request.method == "GET":
-            logger.info("not authenticated --->>> returned to login")
-            return redirect("login")
         return render(request, self.template_name)
 
 
@@ -32,37 +29,25 @@ class SignupView(View):
         return render(request, self.template_name, {"form": form})
 
     def post(self, request, *args, **kwargs):
-        if request.method == "POST":
-            form = self.form_class(request.POST)
-            try:
-                if form.is_valid():
-                    first_name = form.cleaned_data.get("first_name")
-                    last_name = form.cleaned_data.get("last_name")
-                    username = form.cleaned_data.get("username")
-                    password = form.cleaned_data.get("password")
-                    confirm_password = form.cleaned_data.get(
-                        "confirm_password",
-                    )
+        form = self.form_class(request.POST)
 
-                    if password != confirm_password:
-                        messages.error(request, "Password Does not match")
-                        return redirect("signup")
-                    user = User.objects.create_user(
-                        first_name=first_name,
-                        last_name=last_name,
-                        username=username,
-                        password=password,
-                    )
-                    user.save()
-                    return redirect("login")
-                else:
-                    messages.error(request, "Invalid Entry")
-                    return redirect("signup")
-            except PermissionDenied as e:
-                return HttpResponseNotFound(f"Not found {e}")
-            except Exception as e:
-                return HttpResponseServerError(f"An error occurred: {e}")
-        form = self.form_class()
+        if form.is_valid():
+            username = form.cleaned_data.get("username")
+            password = form.cleaned_data.get("password")
+            confirm_password = form.cleaned_data.get("confirm_password")
+
+            if password != confirm_password:
+                messages.error(request, "Password does not match")
+                return redirect("signup")
+
+            User.objects.create_user(
+                username=username,
+                password=password,
+            )
+
+            return redirect("login")
+
+        messages.error(request, "Invalid form submission")
         return render(request, self.template_name, {"form": form})
 
 
@@ -75,71 +60,60 @@ class LoginView(View):
         return render(request, self.template_name, {"form": form})
 
     def post(self, request, *args, **kwargs):
-        if request.method == "POST":
-            form = self.form_class(request.POST)
-            try:
-                if form.is_valid():
-                    username = form.cleaned_data.get("username")
-                    password = form.cleaned_data.get("password")
+        form = self.form_class(request.POST)
 
-                    user = authenticate(username=username, password=password)
+        if form.is_valid():
+            username = form.cleaned_data.get("username")
+            password = form.cleaned_data.get("password")
 
-                    if user is not None:
-                        login(request, user)
-                        logger.info(f"{user} logged in")
-                        return redirect("home")
-                    else:
-                        messages.error(request, "Invalid username or password")
-                        return redirect("login")
-                else:
-                    messages.error(request, "Invalid form submission")
-                    return render(request, "task1/login.html", {"form": form})
-            except PermissionDenied as e:
-                return HttpResponseNotFound(f"Not found {e}")
-            except Exception as e:
-                return HttpResponseServerError(f"An error occurred: {e}")
-        form = self.form_class()
-        return render(request, self.template_name, {"form": form})
+            user = authenticate(username=username, password=password)
+
+            if user is not None:
+                login(request, user)
+                logger.info(f"{user} logged in")
+                return redirect("home")
+            else:
+                messages.error(request, "Invalid username or password")
+                return redirect("login")
+        else:
+            messages.error(request, "Invalid form submission")
+            return render(request, self.template_name, {"form": form})
 
 
 class LogoutView(View):
     def get(self, request, *args, **kwargs):
-        logger.info(f"{request.user.username} logged out")
+        username = request.user.username
         logout(request)
+        logger.info(f"{username} logged out")
         return redirect("login")
 
 
-class EditView(View):
+class EditView(LoginRequiredMixin, View):
     template_name = "task1/edit.html"
+    login_url = "login"
     form_class = EditForm
 
     def get(self, request, *args, **kwargs):
-        user_instance = request.user
-        form = self.form_class(instance=user_instance)
+        form = self.form_class(instance=request.user)
         return render(request, self.template_name, {"form": form})
 
     def post(self, request, *args, **kwargs):
         user_instance = request.user
-        if request.method == "POST":
-            form = self.form_class(request.POST, instance=user_instance)
-            try:
-                if form.is_valid():
-                    password = form.cleaned_data.get("password")
-                    confirm_password = form.cleaned_data.get(
-                        "confirm_password",
-                    )
-                    if password == "" or confirm_password == "":
-                        messages.error(request, "Invalid Password")
-                        return redirect("edit")
-                    if password != confirm_password:
-                        messages.error(request, "Password Does not match")
-                        return redirect("edit")
-                    user_instance.set_password(password)
-                    form.save()
-                    return redirect("home")
-            except PermissionDenied as e:
-                return HttpResponseNotFound(f"Not found {e}")
-            except Exception as e:
-                return HttpResponseServerError(f"An error occurred: {e}")
-        form = self.form_class()
+        form = self.form_class(request.POST, instance=user_instance)
+
+        if form.is_valid():
+            password = form.cleaned_data.get("password")
+            confirm_password = form.cleaned_data.get("confirm_password")
+
+            if password and password == confirm_password:
+                user_instance.set_password(password)
+                form.save()
+                messages.success(request, "Password updated successfully")
+                return redirect("home")
+            else:
+                messages.error(
+                    request,
+                    "Invalid Password or Passwords do not match",
+                )
+
         return render(request, self.template_name, {"form": form})
