@@ -2,6 +2,7 @@ import logging
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect, render
 from django.views import View
@@ -17,7 +18,13 @@ class HomeView(LoginRequiredMixin, View):
     login_url = "login"
 
     def get(self, request, *args, **kwargs):
-        return render(request, self.template_name)
+        user_data = User.objects.get(username=request.user.username)
+        user_profile = Profile.objects.get(user=user_data)
+        return render(
+            request,
+            self.template_name,
+            {"user_data": user_data, "user_profile": user_profile},
+        )
 
 
 class ProfileView(View):

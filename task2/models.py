@@ -16,6 +16,7 @@ class Profile(models.Model):
             )
         ],
         null=True,
+        blank=True,
     )
     address = models.TextField(max_length=200, null=True, blank=True)
     avatar = models.ImageField(

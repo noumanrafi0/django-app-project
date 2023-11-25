@@ -7,6 +7,8 @@ from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.views import View
 
+from task2.models import Profile
+
 from .forms import EditForm, LoginForm, SignupForm
 
 logger = logging.getLogger(__name__)
@@ -17,7 +19,13 @@ class HomeView(LoginRequiredMixin, View):
     login_url = "login"
 
     def get(self, request, *args, **kwargs):
-        return render(request, self.template_name)
+        user_data = User.objects.get(username=request.user.username)
+        user_profile = Profile.objects.get(user=user_data)
+        return render(
+            request,
+            self.template_name,
+            {"user_data": user_data, "user_profile": user_profile},
+        )
 
 
 class SignupView(View):
@@ -71,7 +79,15 @@ class LoginView(View):
             if user is not None:
                 login(request, user)
                 logger.info(f"{user} logged in")
-                return redirect("home")
+                # user_name=username
+                try:
+                    profile = Profile.objects.create(user=user)
+                    profile.save()
+                except Exception as e:
+                    logger.error(f"Error creating profile: {e}")
+                finally:
+                    return redirect("home")
+
             else:
                 messages.error(request, "Invalid username or password")
                 return redirect("login")
