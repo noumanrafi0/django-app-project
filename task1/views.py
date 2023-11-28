@@ -118,18 +118,22 @@ class EditView(LoginRequiredMixin, View):
         form = self.form_class(request.POST, instance=user_instance)
 
         if form.is_valid():
-            password = form.cleaned_data.get("password")
-            confirm_password = form.cleaned_data.get("confirm_password")
+            form.save()
+            messages.success(request, "Information updated successfully")
+            return redirect("home")
 
-            if password and password == confirm_password:
-                user_instance.set_password(password)
-                form.save()
-                messages.success(request, "Password updated successfully")
-                return redirect("home")
-            else:
-                messages.error(
-                    request,
-                    "Invalid Password or Passwords do not match",
-                )
+            # password = form.cleaned_data.get("password")
+            # confirm_password = form.cleaned_data.get("confirm_password")
+
+            # if password and password == confirm_password:
+            #     user_instance.set_password(password)
+            #     form.save()
+            #     messages.success(request, "Password updated successfully")
+            #     return redirect("home")
+            # else:
+            #     messages.error(
+            #         request,
+            #         "Invalid Password or Passwords do not match",
+            #     )
 
         return render(request, self.template_name, {"form": form})
