@@ -1,14 +1,76 @@
 {% extends "base.html" %}
 {% block title %}home{% endblock %}
 {% block body %}
-    <h2 class="mt-5" style="text-align: center;">Welcome {{request.user.username}}</h2>
-    <div class="d-flex align-items-center justify-content-center mt-5">
-        <div class="btn btn-warning mx-1"
-             type="submit"
-             onclick="location.href='{% url 'edit' %}'">Edit</div>
-        <div class="btn btn-primary mx-1"
-             type="submit"
-             onclick="location.href='{% url 'logout' %}'">Logout</div>
-        <!-- <div href="{% url 'logout' %}" class="btn btn-primary mx-1">logout</div> -->
+  {% if messages %}
+    {% for message in messages %}<div class="alert alert-success">{{ message }}</div>{% endfor %}
+  {% endif %}
+  <div class="container text-center">
+    <div class="row">
+      <h2 class="mt-5" style="text-align: center">Welcome {{ request.user.username }}</h2>
     </div>
+    <br>
+    <br>
+    <br>
+    <div class="row">
+      <div class="col">
+        <table class="table">
+          <tbody>
+            <tr>
+              <th>username:</th>
+              <td>{{ request.user.username }}</td>
+            </tr>
+            <tr>
+              <th>first name:</th>
+              <td>{{ user_data.first_name }}</td>
+            </tr>
+            <tr>
+              <th>last name:</th>
+              <td>{{ user_data.last_name }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col">
+        <div class="d-flex align-items-center justify-content-center mt-5">
+          <div class="btn btn-warning mx-1"
+               type="submit"
+               onclick="location.href='{% url 'edit' %}'">Edit</div>
+          <div class="btn btn-primary mx-1"
+               type="submit"
+               onclick="location.href='{% url 'logout' %}'">Logout</div>
+          <div class="btn btn-secondary mx-1"
+               type="submit"
+               onclick="location.href='{% url 'profile' %}'">Edit profile</div>
+          <!-- <div href="{% url 'logout' %}" class="btn btn-primary mx-1">logout</div> -->
+        </div>
+      </div>
+      <div class="col">
+        <table class="table">
+          <tbody>
+            <tr>
+              <th>phone:</th>
+              <td>{{ user_profile.phone }}</td>
+            </tr>
+            <tr>
+              <th>address:</th>
+              <td>{{ user_profile.address }}</td>
+            </tr>
+            <tr>
+              <th>avatar:</th>
+              <td>{{ user_profile.avatar }}</td>
+            </tr>
+            <tr>
+              <td></td>
+              <td>
+                <img src="./media/{{ user_profile.avatar }}"
+                     alt="Description"
+                     width="200"
+                     height="230">
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 {% endblock %}
